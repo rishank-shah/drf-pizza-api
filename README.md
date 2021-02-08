@@ -25,6 +25,7 @@ PostgreSQL should be configured with the project. Our database should be able to
 - [python3.8.2 (32-bit)](https://www.python.org/downloads/release/python-382/)
 -  [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html)
 - [git-bash](https://git-scm.com/downloads)
+- [postgresql](https://www.postgresql.org/download/)
 
 ##### NOTE: If running on windows please use git-bash don't use cmd.
 ### Steps to run the project:
@@ -38,6 +39,7 @@ cp .env.example .env
 virtualenv venv --python=python3.8.2
 source venv/Scripts/activate
 pip install -r requirements.txt
+source .env
 python manage.py migrate
 python manage.py makemigrations
 python manage.py migrate
