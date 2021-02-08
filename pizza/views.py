@@ -1,11 +1,7 @@
-from rest_framework.decorators import api_view
 from rest_framework import viewsets,status
 from rest_framework.response import Response
-from rest_framework import generics
 from .models import PizzaModel,Topping,PizzaSize
 from .serializers import PizzaSerializer,ToppingSerializer,PizzaSizeSerializer
-from rest_framework.decorators import api_view
-from rest_framework import filters
 
 list_types = ['Regular','Square']
 
@@ -32,6 +28,7 @@ class PizzaViewSet(viewsets.ModelViewSet):
         return pizza
     
     def list(self, request, *args, **kwargs):
+        # Checking for filtering of pizza by type and size
         pizza_type = self.request.query_params.get('pizza_type', '')
         pizza_size = self.request.query_params.get('pizza_size', '')
         
@@ -40,6 +37,7 @@ class PizzaViewSet(viewsets.ModelViewSet):
         if len(pizza_size) == 0:
             pizza_size = None
 
+        # if both paramters are present in url
         if pizza_type is not None and pizza_size is not None:
             filtered = PizzaModel.objects.filter(pizza_size__pizza_size__iexact=pizza_size).filter(pizza_type__iexact=pizza_type)
             filter_pizza_result_count = filtered.count()
@@ -51,6 +49,7 @@ class PizzaViewSet(viewsets.ModelViewSet):
                 'filter_pizza_result':serializer.data
             })
 
+        #  if only pizza_size is present
         elif pizza_size is not None:
             filtered_size = PizzaModel.objects.filter(pizza_size__pizza_size__iexact=pizza_size)
             serializer_pizza_size = PizzaSerializer(filtered_size,many=True)
@@ -59,6 +58,8 @@ class PizzaViewSet(viewsets.ModelViewSet):
                 'filter_value':pizza_size,
                 'filter_pizza_result':serializer_pizza_size.data
             })
+        
+        # if only pizza_type is present
         elif pizza_type is not None:
             filtered_type = PizzaModel.objects.filter(pizza_type__iexact=pizza_type)
             serializer_pizza_type = PizzaSerializer(filtered_type,many=True)
@@ -68,6 +69,7 @@ class PizzaViewSet(viewsets.ModelViewSet):
                 'filter_pizza_result':serializer_pizza_type.data
             })
 
+        # if neither pizza_type nor pizza_size is present
         if pizza_size is None and pizza_type is None:
             serializer_topping = ToppingSerializer(Topping.objects.all()[::-1],many=True)
             serializer_size = PizzaSizeSerializer(PizzaSize.objects.all()[::-1],many=True) 
@@ -83,9 +85,9 @@ class PizzaViewSet(viewsets.ModelViewSet):
     def create(self,request,*args, **kwargs):
         data = request.data
         try:
-            pizza_size = data.get('pizza_size',0)           #large, small
-            pizza_type = data.get('pizza_type',0)           #regular square
-            
+            pizza_size = data.get('pizza_size',0)
+            pizza_type = data.get('pizza_type',0)
+
             if pizza_size == 0 or pizza_type == 0:
                 return Response({
                     'error':'Please provide pizza_size and pizza_type'
@@ -139,6 +141,7 @@ class PizzaViewSet(viewsets.ModelViewSet):
             },status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self,request,*args, **kwargs):
+        # get pizza by ID
         pizza_id = kwargs['pk']
         try:
             if not PizzaModel.objects.filter(id=pizza_id).exists():
@@ -155,6 +158,10 @@ class PizzaViewSet(viewsets.ModelViewSet):
         except:
             return Response({
                 'error':'Something went wrong. Please try again.'
+            },status=status.HTTP_400_BAD_REQUEST)
+           
+        return Response({
+                'error':'Unexpected Behaviour'
             },status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self,request,*args, **kwargs):
@@ -173,6 +180,10 @@ class PizzaViewSet(viewsets.ModelViewSet):
         except:
             return Response({
                 'error':'Something went wrong. Please try again.'
+            },status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+                'error':'Unexpected Behaviour'
             },status=status.HTTP_400_BAD_REQUEST)
     
     def update(self,request,*args, **kwargs):
@@ -239,6 +250,10 @@ class PizzaViewSet(viewsets.ModelViewSet):
                 'error':'Something went wrong. Please form the request body correctly.'
             },status=status.HTTP_400_BAD_REQUEST)
 
+        return Response({
+                'error':'Unexpected Behaviour'
+            },status=status.HTTP_400_BAD_REQUEST)
+
 class ToppingViewSet(viewsets.ModelViewSet):
     '''
         Request Should Be like: {
@@ -300,7 +315,7 @@ class PizzaSizeViewSet(viewsets.ModelViewSet):
     def create(self,request,*args, **kwargs):
         data = request.data
         try:
-            pizza_size = data.get('pizza_size',0)           #large, small
+            pizza_size = data.get('pizza_size',0)
             
             if pizza_size == 0:
                 return Response({
